@@ -11,7 +11,7 @@
 function islandora_mods_display_preprocess_islandora_mods_display_display(array &$variables) {
   $object = $variables['islandora_object'];
 
-  if (islandora_datastream_access(ISLANDORA_VIEW_OBJECTS, $object['MODS'])) {
+  if (islandora_datastream_access(FEDORA_VIEW_OBJECTS, $object['MODS'])) {
     try {
       $mods = $object['MODS']->content;
     }
