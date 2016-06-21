@@ -1,0 +1,7 @@
+name = Islandora PBCore Display Changes
+dependencies[] = islandora
+description = Default display to PBCore metadata
+package = LibraryDAMS
+version = 7.x-dev
+core = 7.x
+

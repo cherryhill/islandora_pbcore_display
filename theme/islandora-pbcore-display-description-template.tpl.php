@@ -10,5 +10,6 @@
  * @see template_preprocess_unicorns_are_awesome_description()
  * @see theme_unicorns_are_awesome_description()
  */
+
 ?>
 <?php print $description; ?>

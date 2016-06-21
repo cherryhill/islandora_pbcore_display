@@ -1,4 +1,4 @@
-Islandora_mods_display
+islandora_pbcore_display
 
 ===========================
 
@@ -6,7 +6,7 @@ SUMMARY
 -------
 Provides an example implementation of the Islandora metadata display viewer framework.
 
-XSLT is utilized to transform MODS data to HTML output.
+XSLT is utilized to transform PBCore data to HTML output.
 
 REQUIREMENTS
 ------------
@@ -18,7 +18,7 @@ Download and enable the module.
 
 CONFIGURATION
 -------------
-The islandora MODS display module is used by selecting it to be the default metadata display viewer at "your_site/admin/islandora/metadata".
+The islandora PBCore display module is used by selecting it to be the default metadata display viewer at "your_site/admin/islandora/metadata".
 
 CUSTOMIZATION
 -------------

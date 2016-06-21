@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-    <xsl:template match="/">
+<xsl:stylesheet version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:pbcore="http://www.pbcore.org/PBCore/PBCoreNamespace.html" exclude-result-prefixes="pbcore dc xsi oai_dc srw_dc"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:srw_dc="info:srw/schema/1/dc-schema"
+	xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"	
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+   
+<!-- 
+This stylesheet transforms PBCore version 2.1 records to a table HTML display 
+-->
 
 	<xsl:output method="xml" indent="yes"/>
 	<xsl:strip-space elements="*"/>
@@ -56,6 +64,7 @@
 			<xsl:for-each select="mods:mods">
 <!--			<oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd"> -->
 <table>
+<tr><th colspan="2"><h3 class="islandora-obj-details-metadata-title">Metadata <span class="islandora-obj-details-dsid">(MODS)</span></h3></th></tr>
 				<xsl:apply-templates/>
 </table>
 <!--			</oai_dc:dc> -->
@@ -93,8 +102,7 @@
 		<tr>
 		  <td>
 		    <xsl:value-of select="$name"/>
-		  </td>
-		  <td>
+		  </td><td>
 
 		<xsl:choose>
 			<xsl:when
@@ -121,7 +129,8 @@
 		</tr>
 	</xsl:template>
 
-	<xsl:template match="mods:subject[mods:topic | mods:name | mods:occupation | mods:geographic | mods:hierarchicalGeographic | mods:cartographics | mods:temporal] ">
+	<xsl:template match="mods:subject[mods:topic | mods:occupation | mods:geographic | mods:hierarchicalGeographic | mods:cartographics | mods:temporal] ">
+<!-- 	<xsl:template match="mods:subject[mods:topic | mods:name | mods:occupation | mods:geographic | mods:hierarchicalGeographic | mods:cartographics | mods:temporal] "> -->
 	  <xsl:if test="normalize-space(mods:topic)">
 	    <xsl:for-each select="mods:topic">
 	      <tr><td><xsl:value-of select="$subjectTopic"/></td><td>
@@ -175,7 +184,7 @@
 	  </xsl:if>
 	  <xsl:if test="normalize-space(mods:temporal)">
 	    <xsl:if test="mods:temporal">
-	      <tr><td><xsl:value-of select="$subjectTemporal"/></td><td>
+	      <tr><td><xsl:value-of select="subjectTemporal"/></td><td>
 		  <xsl:for-each select="mods:temporal">
 		    <xsl:value-of select="."/>
 		    <xsl:if test="position()!=last()">-</xsl:if>
@@ -205,7 +214,7 @@
 	<xsl:template match="mods:tableOfContents">
 	  <!-- <xsl:if test="mods:tableOfContents =''"> -->
 	  <xsl:if test="normalize-space(.)">
-		  <tr><td><xsl:value-of select="$toc"/></td><td>			
+		  <tr><td><xsl:value-of select="toc"/></td><td>			
 			<xsl:value-of select="."/>
 		  </td></tr>
 	  </xsl:if>
@@ -251,9 +260,11 @@
 
 
 		<xsl:for-each select="mods:publisher">
+		  <xsl:if test="normalize-space(mods:publisher)">
 		  <tr><td><xsl:value-of select="$publisher"/></td><td>			
 				<xsl:value-of select="."/>
 		  </td></tr>
+		  </xsl:if>
 		</xsl:for-each>
 	</xsl:template>
 <!--
@@ -411,7 +422,7 @@
 	  </xsl:if>
 	  <xsl:if test="normalize-space(mods:shelfLocation)">
 	  <tr><td><xsl:value-of select="$shelfLocation"/></td><td>
-	      <xsl:for-each select="mods:shelfLocator">
+	      <xsl:for-each select="mods:shelfLocation">
 		<xsl:value-of select="."/>
 		<xsl:if test="position()!=last()">--</xsl:if>
 	      </xsl:for-each>
@@ -467,7 +478,8 @@
 </xsl:if>
 	</xsl:template>
 
-	<xsl:template match="mods:relatedItem[mods:titleInfo | mods:name | mods:identifier | mods:location]">
+	<xsl:template match="mods:relatedItem[mods:titleInfo | mods:identifier | mods:location]">
+<!--	<xsl:template match="mods:relatedItem[mods:titleInfo | mods:name | mods:identifier | mods:location]"> -->
 		<xsl:choose>
 			<xsl:when test="@type='original'">
 			  <tr><td><xsl:value-of select="$relatedItem"/></td><td>
@@ -504,7 +516,9 @@
 	</xsl:template>
 
 	<xsl:template name="name">
-		<xsl:variable name="name">
+	  	<xsl:value-of select="mods:namePart"/>
+<!--
+		<xsl:variable name="name-value">
 			<xsl:for-each select="mods:namePart[not(@type)]">
 				<xsl:value-of select="."/>
 				<xsl:text> </xsl:text>
@@ -519,6 +533,12 @@
 				<xsl:value-of select="mods:namePart[@type='date']"/>
 				<xsl:text/>
 			</xsl:if>
+			<xsl:if test="mods:namePart[@type='personal']">
+				<xsl:text>, </xsl:text>
+				<xsl:value-of select="mods:namePart[@type='personal']"/>
+				<xsl:text/>
+			</xsl:if>
+
 			<xsl:if test="mods:displayForm">
 				<xsl:text> (</xsl:text>
 				<xsl:value-of select="mods:displayForm"/>
@@ -530,7 +550,8 @@
 				<xsl:text>) </xsl:text>
 			</xsl:for-each>
 		</xsl:variable>
-		<xsl:value-of select="normalize-space($name)"/>
+		<xsl:value-of select="normalize-space(name-value)"/>
+-->
 	</xsl:template>
 <!--
 	<xsl:template match="mods:dateIssued[@point='start'] | mods:dateCreated[@point='start'] | mods:dateCaptured[@point='start'] | mods:dateOther[@point='start'] ">
