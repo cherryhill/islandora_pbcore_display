@@ -11,70 +11,63 @@
 function islandora_pbcore_display_preprocess_islandora_pbcore_display_display(array &$variables) {
   $object = $variables['islandora_object'];
 
-  if (islandora_datastream_access(FEDORA_VIEW_OBJECTS, $object['PBCORE'])) {
+  if ($object['PBCORE']) {
     try {
-      $pbcore = $object['PBCORE']->content;
+      $pbcore_o = $object['PBCORE'];
+      if ($pbcore_o) {
+        $pbcore = $pbcore_o->content;
+      }
     } catch (Exception $e) {
       drupal_set_message(t('Error retrieving object %s %t', array(
         '%s' => $object->id,
         '%t' => $e->getMessage(),
       )), 'error', FALSE);
+      $variables['metadata'] = '';
     }
   }
 
-  if ($pbcore) {
-
-    $params = array(
-      'title' => 'Titles',
-      'name' => 'Name',
-      'classification' => 'Classification',
-      'subjectTopic' => 'Subject Topic',
-      'subjectOccupation' => 'Subject Occupation',
-      'subjectName' => 'Subject Name',
-      'subjectGeographic' => 'Subject Geographic',
-      'subjectHierGeographic' => 'Subject Hierarchical Geographic',
-      'subjectCartographic' => 'Subject Cartographic',
-      'subjectTemporal' => 'Subject Temporal',
-      'subjectLocalname' => 'Subject Local Name',
-      'abstract' => 'Abstract',
-      'toc' => 'Table of Contents',
-      'note' => 'Note',
-      'dateIssued' => 'Date Issued',
-      'dateCreated' => 'Date Created',
-      'dateCaptured' => 'Date Captured',
-      'dateOther' => 'Date Other',
-      'publisher' => 'Publisher',
-      'genre' => 'Genre',
-      'typeOfResource' => 'Type of Resource',
-      'extent' => 'Extent',
-      'form' => 'Form',
-      'mediaType' => 'Media Type',
-      'mimeType' => 'Mime Type',
-      'identifier' => 'Identifier',
-      'physicalLocation' => 'Physical Location',
-      'shelfLocation' => 'Shelf Location',
-      'url' => 'URL',
-      'holdingSubLocation' => 'Holding Sublocation',
-      'holdingShelfLocator' => 'Holding Shelf Locator',
-      'electronicLocator' => 'Electronic Locator',
-      'language' => 'Language',
-      'relatedItem' => 'Related Item',
-      'accessCondition' => 'Access Condition',
-    );
-
-    $file = drupal_get_path('module', 'islandora_pbcore_display') . '/xsl/pbcore_display.xsl';
-    $xslt = new XSLTProcessor();
-    $xslt_dom = new DOMDocument();
-    $xslt_dom->load($file);
-    $input = new DOMDocument();
-    $did_load_ok = $input->loadXML($pbcore);
+  if (! isset($pbcore)) {
+    drupal_set_message(t('PBCORE description not found for %s', array(
+      '%s' => $object->id,
+    )), 'error', FALSE);
+    $variables['metadata'] = '';
+  }
+  else {
+    $pbcore_dom = new DOMDocument();
+    $did_load_ok = $pbcore_dom->loadXML($pbcore);
     if ($did_load_ok) {
-      $xslt->importStylesheet($xslt_dom);
-      foreach ($params as $k => $v) {
-        $xslt->setParameter('', $k, $v);
+      $display = array();
+      $ini_file = drupal_get_path('module', 'islandora_pbcore_display') . '/pbcore_display.ini';
+      $ini_array = parse_ini_file($ini_file, TRUE);
+      if (!$ini_array) {
+        drupal_set_message(t('Error retrieving islandora_pbcore_display config file'), 'error', FALSE);
       }
-
-      $variables['metadata'] = $xslt->transformToXml($input);
+      else {
+        $pbcore_xpath = new DOMXpath($pbcore_dom);
+        foreach ($ini_array as $section_title => $section_array) {
+          $display[] = "<h2>$section_title</h2>";
+          $display[] = '<dl class="islandora-inline-metadata islandora-metadata-fields">';
+          foreach ($section_array as $key => $xpath) {
+            $elements = $pbcore_xpath->query($xpath);
+            if ($elements === FALSE) {
+              drupal_set_message(t('Error in xpath for %s:%k', array(
+                '%s' => $section_title,
+                '%k' => $key,
+              )), 'error', FALSE);
+            }
+            elseif ($elements->item(0) && $elements->item(0)->nodeValue) {
+              $display[] = "<dt>$key</dt>";
+              $display[] = '<dd>';
+              foreach ($elements as $value) {
+                $display[] = "$value->nodeValue<br>";
+              }
+              $display[] = '</dd>';
+            }
+          }
+          $display[] = '</dl>';
+        }
+      }
+      $variables['metadata'] = join("\n", $display);
     }
   }
 }
